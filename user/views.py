@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 
 
+@login_required()
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -19,6 +21,7 @@ def login_view(request):
     return render(request, 'auth/login.html', {'form': form})
 
 
+@login_required()
 def register(request):
     if request.method == 'POST':
         first_name = request.POST['first_name']
