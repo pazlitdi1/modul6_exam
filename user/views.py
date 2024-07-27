@@ -3,27 +3,36 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.generic import FormView, CreateView
 
 
-@login_required()
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'auth/login.html', {'form': form})
+class LoginView(FormView):
+    template_name = 'auth/login.html'
+    form_class = AuthenticationForm
+    success_url = '/home/'  # Home page URL
+
+    def form_valid(self, form):
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(self.request, user)
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
-@login_required()
-def register(request):
-    if request.method == 'POST':
+class RegisterView(View):
+    def get(self, request):
+        return render(request, 'auth/register.html')
+
+    def post(self, request):
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         username = request.POST['username']
@@ -33,18 +42,21 @@ def register(request):
         if password != password2:
             return render(request, 'auth/register.html', {'message_password': 'Error password'})
 
-        else:
+        if User.objects.filter(username=username).exists():
+            return render(request, 'auth/register.html', context={"message": "Already registered"})
 
-            if User.objects.filter(username=username).exists():
-                return render(request, 'auth/register.html', context={"message": "Already registered"})
-        new_user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username, email=email)
+        new_user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email
+        )
         new_user.set_password(password)
         new_user.save()
         return redirect('login')
 
-    return render(request, 'auth/register.html')
 
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('login')
