@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from shop.models import Shop, Category, Nav_Category, Meat, Bread, Fruits, Vegetables, All_products
+from shop.models import Shop, Category, Nav_Category, Meat, Bread, Fruits, Vegetables, Shop_all_products
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from app.forms import ProductForm
