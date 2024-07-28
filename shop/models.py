@@ -86,7 +86,7 @@ class Vegetables(models.Model):
         return self.title
 
 
-class All_products(models.Model):
+class Shop_all_products(models.Model):
     title = models.CharField(max_length=150)
     slug = models.SlugField(max_length=150, unique=True)
     description = models.TextField()
